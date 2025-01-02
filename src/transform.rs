@@ -34,3 +34,62 @@ impl ATrousTransform {
         }
     }
 }
+
+impl Iterator for ATrousTransform {
+    // Our output is an image as well as the current level for each
+    // iteration. The current level is an `Option` to represent the
+    // final residue layer after the intermediary layers have been
+    // generated.
+    type Item = (Array2::<f32>, Option<usize>);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let pixel_scale = self.current_level;
+        self.current_level += 1;
+
+        // We've already generated all the layers. Return None to 
+        // exit the iterator.
+        if pixel_scale > self.levels {
+            return None;
+        }
+
+        // We've generated all intermediary layers, return the 
+        // residue layer.
+        if pixel_scale == self.levels {
+            return Some((self.input.clone(), None))
+        }
+
+        let (width, height) = (self.width, self.height);
+
+        // Distance between adjacent pixels for convolution (also 
+        // referred to as size of "hole").
+        let distance = 2_usize.pow(pixel_scale as u32);
+
+        // Create new buffer to hold the computed data for this layer.
+        let mut current_data = Array2::<f32>::zeros((height, width));
+
+        // Iterate over each pixel location in the 2D image
+        for x in 0..width {
+            for y in 0..height {
+                // Set the current pixel in current layer to
+                // the result of convolution on the current
+                // pixel in input data.
+                current_data[[y, x]] = self.compute_convoluted_pixel(
+                    distance, 
+                    [x, y]
+                );
+            }
+        }
+
+        // Create current layer by subtracting currently computed pixels 
+        // from previous layer
+        let final_data = self.input.clone() - &current_data;
+
+        // Set the input layer to equal the current computed layer so 
+        // that it can be used as the "previous layer" in next iteration.
+        // This is also our residue data for each layer.
+        self.input = current_data;
+
+        // Return the current layer data as well as current level information.
+        Some((final_data, Some(self.current_level)))
+    }
+}
