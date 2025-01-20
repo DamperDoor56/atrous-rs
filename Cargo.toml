@@ -1,9 +1,16 @@
+
 [package]
 name = "atrous-rs"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[[bin]]
+name = "atrous"
+path = "src/main.rs"
+
+[lib]
+name = "atrous"
+path = "src/lib.rs"
 
 [dependencies]
 image = "0.25.5"

@@ -3,8 +3,8 @@ use atrous::recompose::RecomposableLayers;
 use atrous::transform::ATrousTransform;
 
 fn main() {
-    // Open our noisy image
-    let image = image::open("m33-noise-lum.jpg").unwrap();
+    // Reference your image here!:
+    let image = image::open("image.png").unwrap();
 
     // Create a new instance of the transform with 9 layers
     let transform = ATrousTransform::new(&image, 9);
